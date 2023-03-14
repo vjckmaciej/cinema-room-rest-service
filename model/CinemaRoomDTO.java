@@ -2,7 +2,6 @@ package cinema.model;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.annotation.JsonPropertyOrder;
-import lombok.Data;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
@@ -25,4 +24,7 @@ public class CinemaRoomDTO {
     private int numberOfColumns;
     @JsonProperty("available_seats")
     private List<Seat> availableSeats;
+
+//    public CinemaRoomDTO(int numberOfRows, int numberOfColumns, List<Seat> availableSeats) {
+//    }
 }

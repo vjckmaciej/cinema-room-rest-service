@@ -13,15 +13,31 @@ import java.util.stream.IntStream;
 public class CinemaRoom {
     private int numberOfRows;
     private int numberOfColumns;
-    private List<Seat> availableSeats = new ArrayList<>();
+    private List<Seat> availableSeats;
 
     public CinemaRoom(int numberOfRows, int numberOfColumns) {
         this.numberOfRows = numberOfRows;
         this.numberOfColumns = numberOfColumns;
-        availableSeats = IntStream.rangeClosed(1, numberOfRows)
+//        availableSeats = IntStream.rangeClosed(1, numberOfRows)
+//                .boxed()
+//                .flatMap(row -> IntStream.rangeClosed(1, numberOfColumns)
+//                        .mapToObj(num -> new Seat(row, num)))
+//                .collect(Collectors.toList());
+//        this.availableSeats = IntStream.rangeClosed(1, numberOfRows)
+//                .boxed()
+//                .flatMap(row -> IntStream.rangeClosed(1, numberOfColumns)
+//                        .mapToObj(num -> {
+//                            int price = row <= 4 ? 10 : 8;
+//                            return new Seat(row, num, price);
+//                        }))
+//                .collect(Collectors.toList());
+        this.availableSeats = IntStream.rangeClosed(1, numberOfRows)
                 .boxed()
                 .flatMap(row -> IntStream.rangeClosed(1, numberOfColumns)
-                        .mapToObj(num -> new Seat(row, num)))
+                        .mapToObj(num -> {
+                            int price = row <= 4 ? 10 : 8;
+                            return new Seat(row, num, price, false);
+                        }))
                 .collect(Collectors.toList());
     }
 }
