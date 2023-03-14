@@ -2,7 +2,7 @@ package cinema.controller;
 
 import cinema.model.CinemaRoomDTO;
 import cinema.model.PurchaseRequestDTO;
-import cinema.model.SeatDTO;
+import cinema.model.TicketDTO;
 import cinema.service.CinemaService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
@@ -22,7 +22,7 @@ public class CinemaController {
     }
 
     @PostMapping("/purchase")
-    public SeatDTO purchaseTicket(@RequestBody PurchaseRequestDTO purchaseRequestDTO) {
+    public TicketDTO purchaseTicket(@RequestBody PurchaseRequestDTO purchaseRequestDTO) {
         return cinemaService.purchaseTicket(purchaseRequestDTO);
     }
 }

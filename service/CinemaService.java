@@ -3,9 +3,7 @@ package cinema.service;
 import cinema.exception.SeatNotAvailableException;
 import cinema.model.*;
 import org.modelmapper.ModelMapper;
-import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
-import org.springframework.web.server.ResponseStatusException;
 
 import java.util.List;
 import java.util.stream.Collectors;
@@ -21,20 +19,14 @@ public class CinemaService {
         this.modelMapper = modelMapper;
     }
 
-//    public CinemaRoomDTO toCinemaRoomDto(CinemaRoom cinemaRoom) {
-//
-//        return new CinemaRoomDTO(cinemaRoom.getNumberOfRows(), cinemaRoom.getNumberOfColumns(), cinemaRoom.getAvailableSeats());
-//    }
-
     public CinemaRoomDTO toCinemaRoomDto(CinemaRoom cinemaRoom) {
         return modelMapper.map(cinemaRoom, CinemaRoomDTO.class);
     }
 
-    public SeatDTO toSeatDto(Seat seat) {
-        return modelMapper.map(seat, SeatDTO.class);
+    public TicketDTO toTicketDto(Seat seat) {
+        return modelMapper.map(seat, TicketDTO.class);
     }
     public CinemaRoomDTO getAvailableSeats() {
-      //  CinemaRoom cinemaRoom = new CinemaRoom(ROWS, COLUMNS);
         List<Seat> allAvailableSeats = cinemaRoom.getAvailableSeats();
         allAvailableSeats = allAvailableSeats.stream().filter(seat -> !seat.isTaken())
                 .collect(Collectors.toList());
@@ -42,17 +34,16 @@ public class CinemaService {
         return toCinemaRoomDto(this.cinemaRoom);
     }
 
-    public SeatDTO purchaseTicket(PurchaseRequestDTO purchaseRequestDTO) {
+    public TicketDTO purchaseTicket(PurchaseRequestDTO purchaseRequestDTO) {
         if (purchaseRequestDTO.getRow() > cinemaRoom.getNumberOfRows() || purchaseRequestDTO.getRow() < 0 ||
                 purchaseRequestDTO.getColumn() > cinemaRoom.getNumberOfColumns() || purchaseRequestDTO.getColumn() < 0) {
-                    //throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "The number of a row or a column is out of bounds!");
                     throw new SeatNotAvailableException("The number of a row or a column is out of bounds!");
         }
         for (Seat seat : cinemaRoom.getAvailableSeats()) {
             if (seat.getRow() == purchaseRequestDTO.getRow() && seat.getColumn() == purchaseRequestDTO.getColumn()) {
                 if (!seat.isTaken()) {
                     updateSeatToTaken(seat);
-                    return toSeatDto(seat);
+                    return toTicketDto(seat);
                 } else {
                     throw new SeatNotAvailableException("The ticket has been already purchased!");
                 }

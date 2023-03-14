@@ -13,12 +13,10 @@ import lombok.Setter;
 })
 
 @Data
-@NoArgsConstructor //needed because we map CinemaRoom object to CinemaRoomDTO object with Mapper
+@NoArgsConstructor
 @Getter
 @Setter
 public class PurchaseRequestDTO {
-    @JsonProperty
     private int row;
-    @JsonProperty
     private int column;
 }
