@@ -2,7 +2,6 @@ package cinema.controller;
 
 import cinema.model.CinemaRoomDTO;
 import cinema.model.PurchaseRequestDTO;
-import cinema.model.PurchaseResponseDTO;
 import cinema.model.SeatDTO;
 import cinema.service.CinemaService;
 import org.springframework.beans.factory.annotation.Autowired;

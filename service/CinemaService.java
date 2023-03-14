@@ -1,5 +1,6 @@
 package cinema.service;
 
+import cinema.exception.SeatNotAvailableException;
 import cinema.model.*;
 import org.modelmapper.ModelMapper;
 import org.springframework.http.HttpStatus;
@@ -34,17 +35,18 @@ public class CinemaService {
     }
     public CinemaRoomDTO getAvailableSeats() {
       //  CinemaRoom cinemaRoom = new CinemaRoom(ROWS, COLUMNS);
-        //        List<Seat> allAvailableSeats = cinemaRoomDTO.getAvailableSeats();
-//        allAvailableSeats = allAvailableSeats.stream().filter(seat -> !seat.isTaken())
-//                .collect(Collectors.toList());
-//        cinemaRoomDTO.setAvailableSeats(allAvailableSeats);
+        List<Seat> allAvailableSeats = cinemaRoom.getAvailableSeats();
+        allAvailableSeats = allAvailableSeats.stream().filter(seat -> !seat.isTaken())
+                .collect(Collectors.toList());
+        cinemaRoom.setAvailableSeats(allAvailableSeats);
         return toCinemaRoomDto(this.cinemaRoom);
     }
 
     public SeatDTO purchaseTicket(PurchaseRequestDTO purchaseRequestDTO) {
         if (purchaseRequestDTO.getRow() > cinemaRoom.getNumberOfRows() || purchaseRequestDTO.getRow() < 0 ||
                 purchaseRequestDTO.getColumn() > cinemaRoom.getNumberOfColumns() || purchaseRequestDTO.getColumn() < 0) {
-                    throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "The number of a row or a column is out of bounds!");
+                    //throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "The number of a row or a column is out of bounds!");
+                    throw new SeatNotAvailableException("The number of a row or a column is out of bounds!");
         }
         for (Seat seat : cinemaRoom.getAvailableSeats()) {
             if (seat.getRow() == purchaseRequestDTO.getRow() && seat.getColumn() == purchaseRequestDTO.getColumn()) {
@@ -52,8 +54,7 @@ public class CinemaService {
                     updateSeatToTaken(seat);
                     return toSeatDto(seat);
                 } else {
-                    throw new ResponseStatusException(HttpStatus.BAD_REQUEST,
-                            "The ticket has been already purchased!");
+                    throw new SeatNotAvailableException("The ticket has been already purchased!");
                 }
             }
         }

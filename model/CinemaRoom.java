@@ -18,19 +18,6 @@ public class CinemaRoom {
     public CinemaRoom(int numberOfRows, int numberOfColumns) {
         this.numberOfRows = numberOfRows;
         this.numberOfColumns = numberOfColumns;
-//        availableSeats = IntStream.rangeClosed(1, numberOfRows)
-//                .boxed()
-//                .flatMap(row -> IntStream.rangeClosed(1, numberOfColumns)
-//                        .mapToObj(num -> new Seat(row, num)))
-//                .collect(Collectors.toList());
-//        this.availableSeats = IntStream.rangeClosed(1, numberOfRows)
-//                .boxed()
-//                .flatMap(row -> IntStream.rangeClosed(1, numberOfColumns)
-//                        .mapToObj(num -> {
-//                            int price = row <= 4 ? 10 : 8;
-//                            return new Seat(row, num, price);
-//                        }))
-//                .collect(Collectors.toList());
         this.availableSeats = IntStream.rangeClosed(1, numberOfRows)
                 .boxed()
                 .flatMap(row -> IntStream.rangeClosed(1, numberOfColumns)
