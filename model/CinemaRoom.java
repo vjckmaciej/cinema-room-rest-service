@@ -3,6 +3,7 @@ package cinema.model;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
+import java.util.ArrayList;
 import java.util.List;
 import java.util.stream.Collectors;
 import java.util.stream.IntStream;
@@ -13,6 +14,7 @@ public class CinemaRoom {
     private int numberOfRows;
     private int numberOfColumns;
     private List<Seat> availableSeats;
+    private List<Ticket> purchasedTickets;
 
     public CinemaRoom(int numberOfRows, int numberOfColumns) {
         this.numberOfRows = numberOfRows;
@@ -25,5 +27,6 @@ public class CinemaRoom {
                             return new Seat(row, num, price, false);
                         }))
                 .collect(Collectors.toList());
+        this.purchasedTickets = new ArrayList<>();
     }
 }

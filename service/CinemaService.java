@@ -5,6 +5,7 @@ import cinema.model.*;
 import org.modelmapper.ModelMapper;
 import org.springframework.stereotype.Service;
 
+import java.util.UUID;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -23,9 +24,10 @@ public class CinemaService {
         return modelMapper.map(cinemaRoom, CinemaRoomDTO.class);
     }
 
-    public TicketDTO toTicketDto(Seat seat) {
-        return modelMapper.map(seat, TicketDTO.class);
+    public PurchaseResponseDTO toPurchaseResponseDto(UUID token, Seat seat) {
+        return new PurchaseResponseDTO(token, seat);
     }
+
     public CinemaRoomDTO getAvailableSeats() {
         List<Seat> allAvailableSeats = cinemaRoom.getAvailableSeats();
         allAvailableSeats = allAvailableSeats.stream().filter(seat -> !seat.isTaken())
@@ -34,16 +36,22 @@ public class CinemaService {
         return toCinemaRoomDto(this.cinemaRoom);
     }
 
-    public TicketDTO purchaseTicket(PurchaseRequestDTO purchaseRequestDTO) {
-        if (purchaseRequestDTO.getRow() > cinemaRoom.getNumberOfRows() || purchaseRequestDTO.getRow() < 0 ||
-                purchaseRequestDTO.getColumn() > cinemaRoom.getNumberOfColumns() || purchaseRequestDTO.getColumn() < 0) {
-                    throw new SeatNotAvailableException("The number of a row or a column is out of bounds!");
+    public List<Ticket> getPurchasedTickets() {
+        return cinemaRoom.getPurchasedTickets();
+    }
+
+    public PurchaseResponseDTO purchaseTicket(Seat purchaseRequestSeat) {
+        if (purchaseRequestSeat.getRow() > cinemaRoom.getNumberOfRows() || purchaseRequestSeat.getRow() < 0 ||
+                purchaseRequestSeat.getColumn() > cinemaRoom.getNumberOfColumns() || purchaseRequestSeat.getColumn() < 0) {
+            throw new SeatNotAvailableException("The number of a row or a column is out of bounds!");
         }
         for (Seat seat : cinemaRoom.getAvailableSeats()) {
-            if (seat.getRow() == purchaseRequestDTO.getRow() && seat.getColumn() == purchaseRequestDTO.getColumn()) {
+            if (seat.getRow() == purchaseRequestSeat.getRow() && seat.getColumn() == purchaseRequestSeat.getColumn()) {
                 if (!seat.isTaken()) {
-                    updateSeatToTaken(seat);
-                    return toTicketDto(seat);
+                    takeSeat(seat, true);
+                    Ticket purchasedTicket = new Ticket(seat);
+                    cinemaRoom.getPurchasedTickets().add(purchasedTicket);
+                    return toPurchaseResponseDto(purchasedTicket.getToken(), seat);
                 } else {
                     throw new SeatNotAvailableException("The ticket has been already purchased!");
                 }
@@ -52,10 +60,29 @@ public class CinemaService {
         throw new RuntimeException();
     }
 
-    public void updateSeatToTaken(Seat seatToUpdate) {
+    public ReturnedTicketResponseDTO returnTicket(ReturnedTicketRequestDTO returnRequestToken) {
+        for (Ticket ticket : cinemaRoom.getPurchasedTickets()) {
+            if (ticket.getToken().equals(returnRequestToken.getToken())) {
+                cinemaRoom.getPurchasedTickets().remove(ticket);
+                int rowOfSeatToReturn = ticket.getRow();
+                int columnOfSeatToReturn = ticket.getColumn();
+                for (Seat seat : cinemaRoom.getAvailableSeats()) {
+                    if (seat.getRow() == rowOfSeatToReturn && seat.getColumn() == columnOfSeatToReturn) {
+                        takeSeat(seat, false);
+                        cinemaRoom.getAvailableSeats().add(seat);
+                        return new ReturnedTicketResponseDTO(seat);
+                    }
+                }
+            }
+        }
+        // If no ticket with the specified token was found in the purchasedTickets list
+        throw new SeatNotAvailableException("Wrong token!");
+    }
+
+    public void takeSeat(Seat seatToUpdate, boolean takeThatSeat) {
         for (Seat seat : cinemaRoom.getAvailableSeats()) {
             if (seat.getRow() == seatToUpdate.getRow() && seat.getColumn() == seatToUpdate.getColumn()) {
-                seat.setTaken(true);
+                seat.setTaken(takeThatSeat);
                 break;
             }
         }

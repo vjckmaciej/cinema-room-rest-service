@@ -1,11 +1,15 @@
 package cinema.controller;
 
-import cinema.model.CinemaRoomDTO;
-import cinema.model.PurchaseRequestDTO;
-import cinema.model.TicketDTO;
+
+import cinema.model.*;
 import cinema.service.CinemaService;
+import org.apache.tomcat.util.json.Token;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
+
+import java.util.List;
+import java.util.Map;
+import java.util.UUID;
 
 @RestController
 public class CinemaController {
@@ -21,8 +25,19 @@ public class CinemaController {
         return cinemaService.getAvailableSeats();
     }
 
-    @PostMapping("/purchase")
-    public TicketDTO purchaseTicket(@RequestBody PurchaseRequestDTO purchaseRequestDTO) {
-        return cinemaService.purchaseTicket(purchaseRequestDTO);
+    @GetMapping("/purchasedTickets")
+    public List<Ticket> getPurchasedTickets() {
+        return cinemaService.getPurchasedTickets();
     }
+
+    @PostMapping("/purchase")
+    public PurchaseResponseDTO purchaseTicket(@RequestBody Seat purchaseRequestSeat) {
+        return cinemaService.purchaseTicket(purchaseRequestSeat);
+    }
+
+    @PostMapping("/return")
+    public ReturnedTicketResponseDTO returnTicket(@RequestBody ReturnedTicketRequestDTO returnRequestToken) {
+        return cinemaService.returnTicket(returnRequestToken);
+    }
+
 }
