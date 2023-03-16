@@ -1,6 +1,7 @@
 package cinema.service;
 
 import cinema.exception.SeatNotAvailableException;
+import cinema.exception.WrongPasswordException;
 import cinema.model.*;
 import org.modelmapper.ModelMapper;
 import org.springframework.stereotype.Service;
@@ -13,6 +14,7 @@ import java.util.stream.Collectors;
 public class CinemaService {
     private static final int ROWS = 9;
     private static final int COLUMNS = 9;
+    private final String secretPassword = "super_secret";
     private final ModelMapper modelMapper;
     private final CinemaRoom cinemaRoom = new CinemaRoom(ROWS, COLUMNS);
 
@@ -28,11 +30,7 @@ public class CinemaService {
         return new PurchaseResponseDTO(token, seat);
     }
 
-    public CinemaRoomDTO getAvailableSeats() {
-        List<Seat> allAvailableSeats = cinemaRoom.getAvailableSeats();
-        allAvailableSeats = allAvailableSeats.stream().filter(seat -> !seat.isTaken())
-                .collect(Collectors.toList());
-        cinemaRoom.setAvailableSeats(allAvailableSeats);
+    public CinemaRoomDTO getSizeOfCinemaAndAvailableSeats() {
         return toCinemaRoomDto(this.cinemaRoom);
     }
 
@@ -45,15 +43,19 @@ public class CinemaService {
                 purchaseRequestSeat.getColumn() > cinemaRoom.getNumberOfColumns() || purchaseRequestSeat.getColumn() < 0) {
             throw new SeatNotAvailableException("The number of a row or a column is out of bounds!");
         }
+        for (Ticket ticket : cinemaRoom.getPurchasedTickets()) {
+            if (ticket.getRow() == purchaseRequestSeat.getRow() && ticket.getColumn() == purchaseRequestSeat.getColumn()) {
+                throw new SeatNotAvailableException("The ticket has been already purchased!");
+            }
+        }
         for (Seat seat : cinemaRoom.getAvailableSeats()) {
             if (seat.getRow() == purchaseRequestSeat.getRow() && seat.getColumn() == purchaseRequestSeat.getColumn()) {
                 if (!seat.isTaken()) {
-                    takeSeat(seat, true);
+                    seat.setTaken(true);
                     Ticket purchasedTicket = new Ticket(seat);
                     cinemaRoom.getPurchasedTickets().add(purchasedTicket);
+                    cinemaRoom.getAvailableSeats().remove(seat);
                     return toPurchaseResponseDto(purchasedTicket.getToken(), seat);
-                } else {
-                    throw new SeatNotAvailableException("The ticket has been already purchased!");
                 }
             }
         }
@@ -61,30 +63,33 @@ public class CinemaService {
     }
 
     public ReturnedTicketResponseDTO returnTicket(ReturnedTicketRequestDTO returnRequestToken) {
+        int rowOfSeat;
+        int columnOfSeat;
         for (Ticket ticket : cinemaRoom.getPurchasedTickets()) {
             if (ticket.getToken().equals(returnRequestToken.getToken())) {
                 cinemaRoom.getPurchasedTickets().remove(ticket);
-                int rowOfSeatToReturn = ticket.getRow();
-                int columnOfSeatToReturn = ticket.getColumn();
-                for (Seat seat : cinemaRoom.getAvailableSeats()) {
-                    if (seat.getRow() == rowOfSeatToReturn && seat.getColumn() == columnOfSeatToReturn) {
-                        takeSeat(seat, false);
-                        cinemaRoom.getAvailableSeats().add(seat);
-                        return new ReturnedTicketResponseDTO(seat);
-                    }
-                }
+                rowOfSeat = ticket.getRow();
+                columnOfSeat = ticket.getColumn();
+                Seat freeSeat = new Seat(rowOfSeat, columnOfSeat,  rowOfSeat <= 4 ? 10 : 8, false);
+                cinemaRoom.getAvailableSeats().add(freeSeat);
+                return new ReturnedTicketResponseDTO(freeSeat);
             }
         }
         // If no ticket with the specified token was found in the purchasedTickets list
         throw new SeatNotAvailableException("Wrong token!");
     }
 
-    public void takeSeat(Seat seatToUpdate, boolean takeThatSeat) {
-        for (Seat seat : cinemaRoom.getAvailableSeats()) {
-            if (seat.getRow() == seatToUpdate.getRow() && seat.getColumn() == seatToUpdate.getColumn()) {
-                seat.setTaken(takeThatSeat);
-                break;
+    public StatsDTO getStatistics(String password) {
+        if (password == null || !password.equals(secretPassword)) {
+            throw new WrongPasswordException("The password is wrong!");
+        } else {
+            int numberOfSeatsAvailable = cinemaRoom.getAvailableSeats().size();
+            int numberOfTicketsPurchased = cinemaRoom.getPurchasedTickets().size();
+            int incomeFromTickets = 0;
+            for (Ticket ticket : cinemaRoom.getPurchasedTickets()) {
+                incomeFromTickets += ticket.getPrice();
             }
+            return new StatsDTO(incomeFromTickets, numberOfSeatsAvailable, numberOfTicketsPurchased);
         }
     }
 }

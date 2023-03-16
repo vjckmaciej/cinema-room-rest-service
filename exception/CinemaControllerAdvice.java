@@ -13,4 +13,10 @@ public class CinemaControllerAdvice {
     public Map<String, String> handleUnavailableSeatException(SeatNotAvailableException exception) {
         return Map.of("error", exception.getMessage());
     }
+
+    @ExceptionHandler(WrongPasswordException.class)
+    @ResponseStatus(HttpStatus.UNAUTHORIZED)
+    public Map<String, String> handleWrongPasswordException(WrongPasswordException exception) {
+        return Map.of("error", exception.getMessage());
+    }
 }

@@ -1,15 +1,11 @@
 package cinema.controller;
 
-
 import cinema.model.*;
 import cinema.service.CinemaService;
-import org.apache.tomcat.util.json.Token;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
-import java.util.Map;
-import java.util.UUID;
 
 @RestController
 public class CinemaController {
@@ -21,8 +17,8 @@ public class CinemaController {
     }
 
     @GetMapping("/seats")
-    public CinemaRoomDTO getAvailableSeats() {
-        return cinemaService.getAvailableSeats();
+    public CinemaRoomDTO getSizeOfCinemaAndAvailableSeats() {
+        return cinemaService.getSizeOfCinemaAndAvailableSeats();
     }
 
     @GetMapping("/purchasedTickets")
@@ -38,6 +34,11 @@ public class CinemaController {
     @PostMapping("/return")
     public ReturnedTicketResponseDTO returnTicket(@RequestBody ReturnedTicketRequestDTO returnRequestToken) {
         return cinemaService.returnTicket(returnRequestToken);
+    }
+
+    @PostMapping("/stats")
+    public StatsDTO getStatistics(@RequestParam(required = false) String password) {
+        return cinemaService.getStatistics(password);
     }
 
 }
